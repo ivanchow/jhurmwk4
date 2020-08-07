@@ -1,46 +1,115 @@
 ---
-title: "Johns Hopkins - Regression Models Course Project - Week 4"
+title: "A Comparison of the Fuel Efficiency of Auto-transmission and Manual transmissoin Cars"
 author: "Ivan Chow"
 date: "8/2/2020"
-output: html_document
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 ## Executive Summary
 
-Link to the Rmd file which generates this PDF file.
+This report looks at a data set of a collection of cars and explores the relationship between a set of variables and miles per gallon (MPG) (outcome). The question to be answered based on the data analysis is:
 
+      “Is an automatic or manual transmission better for MPG”
 
-## Appendix - Figures
+The data sets used is the mtcars dataset provided in the CRAN Project/ R stuido.  The conclusion is:
 
+      “Cars with manual transmission has a better MPG over automatic transmission with 24.39 MPG and 17.14 MPG respectively.”
+   
+Details of the quantative analyses for supporting the conclusion is provided in the following sections.
 
-## Attachments
+(Note: This PDF file is generated from Knitr using a R mark down file.  See the link below:
 
-### Objective
+https://github.com/ivanchow/jhurmwk4/blob/master/jhurmwk4.Rmd  )
 
-You work for Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+### Exploratory Data Analysis
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+mtcars2 <- mtcars
+mtcars2$am <- as.factor(mtcars2$am)
+levels(mtcars2$am) <- c("Automatic", "Manual")
+```
+An exploratory data analysis finds the means of MPG for auto-transmission and manual in the dataset are 24.39 MPG and 17.14 MPG respectively.
 
-    “Is an automatic or manual transmission better for MPG”
-    "Quantify the MPG difference between automatic and manual transmissions" 
-    
-```{r mtcars}
-summary(mtcars)
+```{r}
+mpg_by_am <- aggregate(mpg ~ am, data = mtcars2, mean)
+mpg_by_am
 ```
 
-### Grading Criteria
+See appendix [Exploratory Summary of the dataset and Box Plots]
 
-   1. Did the student interpret the coefficients correctly?
-   1. Did the student do some exploratory data analyses?
-   1. Did the student fit multiple models and detail their strategy for model selection?
-   1.  Did the student answer the questions of interest or detail why the question(s) is (are) not answerable?
-   1. Did the student do a residual plot and some diagnostics?
-   1. Did the student quantify the uncertainty in their conclusions and/or perform an inference correctly?
-   1. Was the report brief (about 2 pages long) for the main body of the report and no longer than 5 with supporting appendix of figures?
-   1. Did the report include an executive summary?
-   1. Was the report done in Rmd (knitr)? 
+### Statistial Signifance
+Setting the null hypothesis as the two MPG means are not significant different, with the use of t.test(), it was the calculated p-value is 0.001374.  The low p-vlaue, < 0.01, led to the rejection of the null hypothesis. That is, the two MPG means are significant different.
+See appendix [Statistial Signifance t.test output]
+
+### Single Variable Regression Model
+With single variable am, the mpg for auto transmission is 17.15 and would increase by 7.24 when changing to manual.  See appendix [Single Variable Regresssion Model Plot]
+
+### Multivariable Regression Models
+With the rest of the variables added to the model, it increases the R squared to 86.9%, which shows that we can explain a high proportion of the variance in miles per gallon. In this multivariate regression model, the effect of transmission type is smaller, as it contributes an increase of only 2.52 mpg.
+
+An ANOVA analysis has a P-value of 1.779e-05, so we can reject the hypothesis that the multivariable regression analysis is the same as the single variale regression analysis.
+
+The residuals are normally distributed and not heteroskedastic as shown in the plots.
+
+See appendix [Multivariable Regresssion Model Plot]
+
+## Appendix - Plots of the data analysis
+
+### Exploratory Summary of the dataset and Box Plots
+    
+```{r mtcars}
+head(mtcars)
+```
+
+```{r}
+boxplot(mpg ~ am, data = mtcars2, xlab = "Transmission", 
+        ylab = "Miles per gallon", main = "Fuel economy by Transmission Type")
+```
+
+### Statistial Signifance t.test output
+```{r}
+t.test(mtcars[mtcars2$am == "Manual",]$mpg, 
+       mtcars[mtcars2$am == "Automatic",]$mpg,
+       paired = FALSE, var.equal = FALSE)
+```
+
+
+### Single Variable Regresssion Model Plot
+
+```{r}
+fit0<-lm(mtcars$mpg~mtcars$am)
+summary(fit0)$adj.r.squared
+```
+
+```{r}
+summary(fit0)$coefficients
+```
+
+### Multivariable Regresssion Model Plot
+
+```{r}
+fit1<-lm(mpg~cyl+disp+hp+drat+wt+qsec+factor(vs)+factor(am)+gear+carb,data = mtcars)
+summary(fit1)
+```
+
+
+```{r}
+anova(fit0,fit1)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(fit1)
+```
+
+
 
  
 
